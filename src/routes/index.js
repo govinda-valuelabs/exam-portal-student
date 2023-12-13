@@ -3,7 +3,7 @@ import Home from '../pages/Home.vue';
 import Login from '../pages/Login.vue';
 import Register from '../pages/Register.vue';
 import Exam from '../pages/Exam.vue';
-import QuestionCardVue from '../components/QuestionCard.vue';
+import QuestionCard from '../components/QuestionCard.vue';
 
 const routes = createRouter({
     history: createWebHistory(),
@@ -16,7 +16,7 @@ const routes = createRouter({
             name: 'exam',
             component: Exam,
             children: [
-                { path: '/:id', name: 'examquestion', component: QuestionCardVue }
+                { path: ':questionId', name: 'examquestion', component: QuestionCard }
             ]
         },
     ]

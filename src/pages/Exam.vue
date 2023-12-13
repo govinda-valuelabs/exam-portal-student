@@ -1,16 +1,17 @@
 <script>
 import AuthenticatedLayout from "../layouts/AuthenticatedLayout.vue";
-import QuestionList from "../components/QuestionList.vue";
-import axios from 'axios';
+import axios from "axios";
+import QuestionList from '../components/QuestionList.vue';
 export default {
   name: "Exam",
   components: { AuthenticatedLayout, QuestionList },
   data: () => {
     return {
-      questions: [],  
+      questions: [],
       exam: null,
-      remainingTime: null
-    }
+      remainingTime: "00:20:00",
+      interval: null,
+    };
   },
   mounted() {
     this.getExamStatus();
@@ -19,32 +20,57 @@ export default {
   methods: {
     async getExamStatus() {
       const studentId = localStorage.getItem("studentId");
-      const result = await axios.get("http://localhost:8080/exam/status/" + studentId);
-      if (result.status == 200) {
+      const result = await axios.get(
+        "http://localhost:8080/exam/status/" + studentId
+      );
+      if (result.status == 200 && result.data) {
         this.exam = result.data;
+        this.interval = setInterval(this.checkRemainingTime, 1000);
       }
+    },
+    checkRemainingTime() {
+      const currentTime = Date.now("Asia/Kolkata");
+      const examTime = new Date(this.exam.startTime).valueOf();
+      let milliseconds = currentTime - examTime;
+
+      if (milliseconds > this.exam.limit) {
+        clearInterval(this.interval);
+      }
+      const remainingSeconds = this.exam.limit - milliseconds;
+      this.remainingTime = this.msToTime(remainingSeconds);
+    },
+
+    msToTime(duration) {
+      let seconds = Math.floor((duration / 1000) % 60);
+      let minutes = Math.floor((duration / (1000 * 60)) % 60);
+      let hours = Math.floor((duration / (1000 * 60 * 60)) % 24);
+
+      hours = hours < 10 ? "0" + hours : hours;
+      minutes = minutes < 10 ? "0" + minutes : minutes;
+      seconds = seconds < 10 ? "0" + seconds : seconds;
+      return hours + ":" + minutes + ":" + seconds;
     },
     async getQuestions() {
       const result = await axios.get("http://localhost:8080/exam/question");
       if (result.status == 200 && result.data) {
         this.questions = result.data;
       }
-    }
-  }
+    },
+  },
 };
 </script>
 <template>
   <AuthenticatedLayout>
-    <div class="w-[80%] mt-6 ml-6">
-      <h1 class="text-[32px]">Welcome to Exam Portal</h1>
+    <div class="mt-6 ml-6">
       <p class="text-green-500 text-[22px]">
-        <b>Note: </b>All the questions are mandatory
+        <b>Remaining Time: {{ remainingTime }}</b>
       </p>
-      <router-link
-        to="/exam"
-        class="float-right pl-4 pr-4 pt-2 pb-2 bg-lime-700 rounded-md"
-        >Exam</router-link
-      >
+      <div class="flex">
+        <question-list :questions="this.questions || []" />
+        <div class="question">
+          <router-view></router-view>
+        </div>
+      </div>
     </div>
   </AuthenticatedLayout>
 </template>
