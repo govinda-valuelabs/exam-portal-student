@@ -20,10 +20,9 @@ export default {
       } else {
         this.empty = false;
         try {
-          const result = await axios.post('http://localhost:8080/user', { name: this.name, email: this.email, password: this.password });
-          console.log('result ', result);
+          const result = await axios.post('http://localhost:8080/student', { name: this.name, email: this.email, password: this.password });
           if (result.status == 201) {
-            this.$router.push('/signin');
+            this.$router.push('/login');
           }
           this.name = '';
           this.email = '';
@@ -37,7 +36,7 @@ export default {
 };
 </script>
 <template>
-  <GuestLayout class="sign-up">
+  <GuestLayout class="register">
     <div class="container mx-auto">
       <h1 class="text-2xl font-bold text-center">Sign Up</h1>
       <form class="mt-8" @submit.prevent="submitForm">
@@ -64,7 +63,7 @@ export default {
         <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
           Sign Up
         </button>
-        <p class="mb-1 float-right">Already have an account? <router-link class="text-blue-500" to="/signin">Sign in</router-link>.</p>
+        <p class="mb-1 float-right">Already have an account? <router-link class="text-blue-500" to="/login">Sign in</router-link>.</p>
       </form>
     </div>
   </GuestLayout>

@@ -21,7 +21,7 @@
                 hover:text-blue-400
               "
               >
-              <img src="../assets/Logo.png" alt="Logo" class="exam-logo"/>
+              Home
             </router-link>
             <!-- Mobile menu button -->
             <div @click="showMenu = !showMenu" class="flex md:hidden">
@@ -62,15 +62,17 @@
             <li class="text-sm font-bold text-gray-800 hover:text-blue-400">
               Profile
             </li>
-            <li class="text-sm font-bold text-gray-800 hover:text-blue-400">
-              Sign out
+            <li class="text-sm font-bold text-gray-800 hover:text-blue-400 cursor-pointer" @click="logout()">
+              Logout
             </li>
+            
           </ul>
         </nav>
       </div>
     </div>
   </template>
   <script>
+import axios from 'axios';
   export default {
     name: 'Header',
     data() {
@@ -78,5 +80,16 @@
         showMenu: false,
       };
     },
+    methods: {
+      async logout() {
+        const result = await axios.get('http://localhost:8080/student/logout');
+        if (result.status == 200) {
+          localStorage.removeItem('name');
+          localStorage.removeItem('email');
+          localStorage.removeItem('studentId');
+          this.$router.push('/login');
+        }
+      }
+    }
   };
   </script>

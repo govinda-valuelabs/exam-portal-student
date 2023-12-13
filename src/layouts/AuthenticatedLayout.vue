@@ -1,20 +1,34 @@
 <script>
-import Header from '../components/Header.vue';
-import Sidebar from '../components/Sidebar.vue';
-import Footer from '../components/Footer.vue';
+import Header from "../components/Header.vue";
+import Footer from "../components/Footer.vue";
+import axios from "axios";
 export default {
-  components: {Header, Sidebar, Footer},
-  name: 'AuthenticatedLayout'
-}
+  components: { Header, Footer },
+  name: "AuthenticatedLayout",
+  async mounted() {
+    try {
+      const studentToken = localStorage.getItem("studentToken");
+      const result = await axios.post("http://localhost:8080/student/is-logged", {
+        token: studentToken,
+      });
+      if (result.status != 200) {
+        this.$router.push("/login");
+      } else {
+        localStorage.setItem('studentId', result.data.studentId);
+        localStorage.setItem('name', result.data.name);
+        localStorage.setItem('email', result.data.email);
+      }
+      
+    } catch (error) {
+      this.$router.push("/login");
+    }
+  },
+};
 </script>
 
 <template>
   <Header />
-  <div class="container flex">
-    <div class="sidebar mr-4">
-      <Sidebar />
-    </div>
+  <div class="container flex h-screen w-[100%]">
     <slot />
   </div>
-  <Footer />
 </template>
