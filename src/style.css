@@ -13,3 +13,6 @@
 .side-h-screen {
   height: calc(100vh - 140px);
 }
+.active-question {
+  box-shadow: 2px 2px 2px 2px greenyellow;
+}

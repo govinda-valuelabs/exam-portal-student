@@ -1,4 +1,5 @@
 <script>
+import { isProxy, toRaw } from 'vue'
 import AuthenticatedLayout from "../layouts/AuthenticatedLayout.vue";
 import axios from "axios";
 import QuestionList from '../components/QuestionList.vue';
@@ -11,6 +12,7 @@ export default {
       exam: null,
       remainingTime: "00:20:00",
       interval: null,
+      randomKey: Math.random()
     };
   },
   mounted() {
@@ -18,6 +20,9 @@ export default {
     this.getQuestions();
   },
   methods: {
+    checkAnswer(evt) {
+      this.getExamStatus();
+    },
     async getExamStatus() {
       const studentId = localStorage.getItem("studentId");
       const result = await axios.get(
@@ -35,6 +40,7 @@ export default {
 
       if (milliseconds > this.exam.limit) {
         clearInterval(this.interval);
+        // this.$router.push('/finished')
       }
       const remainingSeconds = this.exam.limit - milliseconds;
       this.remainingTime = this.msToTime(remainingSeconds);
@@ -53,9 +59,35 @@ export default {
     async getQuestions() {
       const result = await axios.get("http://localhost:8080/exam/question");
       if (result.status == 200 && result.data) {
-        this.questions = result.data;
+        this.questions = isProxy(result.data) ? toRaw(result.data) : result.data;
+        for (let q in this.questions) {
+          this.questions[q].cls = 'bg-blue-800';
+        }
+      }
+      this.randomKey = Math.random();
+    },
+    onClickPrevious() {
+      const id = this.$route.params.questionId;
+      let questions = toRaw(this.questions)
+      for (let q in questions) {
+        let index = parseInt(q);
+        if (questions[index]._id == id && questions[index - 1]) {
+          this.$router.push({name: 'examquestion', params: { questionId: questions[index - 1]._id }});
+          break;
+        } 
       }
     },
+    onClickNext() {
+      const id = this.$route.params.questionId;
+      let questions = toRaw(this.questions)
+      for (let q in questions) {
+        let index = parseInt(q);
+        if (questions[index]._id == id && questions[index + 1]) {
+          this.$router.push({name: 'examquestion', params: { questionId: questions[index + 1]._id }});
+          break;
+        } 
+      }
+    }
   },
 };
 </script>
@@ -66,9 +98,9 @@ export default {
         <b>Remaining Time: {{ remainingTime }}</b>
       </p>
       <div class="flex">
-        <question-list :questions="this.questions || []" />
+        <question-list v-if="exam" :questions="this.questions || []" :exam="exam" :key="randomKey"/>
         <div class="question">
-          <router-view></router-view>
+          <router-view @answer="checkAnswer" @opened="getExamStatus()" @previous="onClickPrevious()" @next="onClickNext()"></router-view>
         </div>
       </div>
     </div>

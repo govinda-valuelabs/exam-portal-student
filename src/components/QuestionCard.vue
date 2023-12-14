@@ -6,36 +6,66 @@ export default {
     return {
       loading: false,
       question: null,
+      questionIndex: null
     };
   },
   mounted() {
     this.getQuestion();
+    this.$nextTick(function() {
+      this.getQuestionIndex();
+    })
   },
   watch: {
     "$route.params.questionId": {
       handler: function (value) {
-        console.log("questionId value ", value);
+        this.getQuestion();
       },
     },
   },
   methods: {
+    getQuestionIndex() {
+      const self = this
+      setTimeout(function() {
+        const box = document.querySelector('.active-question');
+        if (box) {
+          self.questionIndex = box.innerHTML + '.'
+        }
+      }, 10)
+    },
     async getQuestion() {
       const id = this.$route.params.questionId;
+      const studentId = localStorage.getItem('studentId');
       try {
-        const result = await axios.get("http://localhost:8080/question/" + id);
+        const result = await axios.get("http://localhost:8080/exam/question/" + id + '?studentId=' + studentId);
         if (result.status == 200 && result.data) {
           this.question = result.data;
+          this.$nextTick(function() {
+            this.getQuestionIndex();
+          })
         }
+        this.$emit('opened', {questionId: id})
       } catch (error) {
         console.log("Error ", error.message);
       }
     },
+    async onChangeOption(optionId, status) {
+      const { questionId } = this.$route.params
+      const studentId = localStorage.getItem('studentId');
+      try {
+        const result = await axios.post('http://localhost:8080/attempt/' + studentId, { questionId, status, optionId });
+        if (result) {
+          this.$emit('answer', {questionId, status, optionId});
+        }
+      } catch (error) {
+        console.log('Error ', message.error);
+      }
+    }
   },
 };
 </script>
 <template>
   <div v-if="question" class="container ml-6">
-    <p class="font-semibold text-[22px]">Question: {{ question.title }}</p>
+    <p class="font-semibold text-[22px]"> <span>{{ questionIndex }}</span> Question: {{ question.title }}</p>
     <div class="options">
       <ul>
         <li v-for="(o, index) in question.options" :key="index">
@@ -43,9 +73,11 @@ export default {
             <input
               :id="`option-${o._id}`"
               type="radio"
-              :value="o.value"
+              :checked="question.selected == o._id"
+              :value="o._id"
               name="option"
               class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+              @change="onChangeOption(o._id, 'attempted')"
             />
             <label
             :for="`option-${o._id}`"
@@ -56,10 +88,10 @@ export default {
         </li>
       </ul>
       <div class="inline-flex">
-        <button class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-l">
+        <button class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-l" @click="$emit('previous')">
           Prev
         </button>
-        <button class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-r">
+        <button class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-r" @click="$emit('next')">
           Next
         </button>
       </div>

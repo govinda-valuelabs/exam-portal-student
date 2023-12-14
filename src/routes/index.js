@@ -4,6 +4,7 @@ import Login from '../pages/Login.vue';
 import Register from '../pages/Register.vue';
 import Exam from '../pages/Exam.vue';
 import QuestionCard from '../components/QuestionCard.vue';
+import Finished from '../pages/Finished.vue'
 
 const routes = createRouter({
     history: createWebHistory(),
@@ -19,6 +20,7 @@ const routes = createRouter({
                 { path: ':questionId', name: 'examquestion', component: QuestionCard }
             ]
         },
+        { path: '/finished', name: 'finished', component: Finished },
     ]
 });
 
