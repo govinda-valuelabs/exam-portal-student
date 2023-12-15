@@ -36,20 +36,20 @@ export default {
       for (let q in value.questions) {
         const question = value.questions[q]
         const route = document.getElementById(`route-${question.questionId}`);
-        let cls = 'bg-blue-800';
+        let cls = 'bg-gray-500';
         if (route) {
-          route.classList.remove('bg-blue-800', 'bg-green-800', 'bg-fuchsia-600');
+          route.classList.remove('bg-gray-500', 'bg-green-500', 'bg-fuchsia-500');
 
           if (question.status == 'opened') {
-            cls = 'bg-orange-600'
+            cls = 'bg-orange-500'
           }
   
           if (question.status == 'attempted') {
-            cls = 'bg-fuchsia-600'
+            cls = 'bg-green-500'
           }
           
           if (this.$route.params.questionId == question.questionId) {
-            route.classList.add('bg-green-800');
+            route.classList.add('bg-blue-500');
           } else {
             route.classList.add(cls);
           }
@@ -74,7 +74,7 @@ export default {
             <router-link
               :id="`route-${q._id}`"
               :to="`/exam/${q._id}`"
-              :class="`inline-block  m-2 w-16 h-16 rounded-md cursor-pointer items-center pt-3 ${q.cls} ${$route.params.questionId == q._id ? 'active-question bg-green-800' : ''}`"
+              :class="`inline-block  m-2 w-16 h-16 rounded-md cursor-pointer items-center pt-3 ${q.cls} ${$route.params.questionId == q._id ? 'active-question' : ''}`"
               >{{ parseInt(i) + 1 }}</router-link
             >
           </li>

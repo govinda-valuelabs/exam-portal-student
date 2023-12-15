@@ -16,10 +16,11 @@ export default {
   methods: {
     async getExamStatus() {
       const studentId = localStorage.getItem("studentId");
-      console.log('studentId Home ', studentId);
       const result = await axios.get("http://localhost:8080/exam/status/" + studentId);
-      console.log('result ', result);
-      if (result.data != null) {
+      
+      if (result.data != null && result.data.endTime) {
+        this.$router.push("/finished");
+      } else if (result.data != null) {
         this.$router.push("/exam");
       }
     },

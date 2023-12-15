@@ -59,6 +59,18 @@ export default {
       } catch (error) {
         console.log('Error ', message.error);
       }
+    },
+    async submit() {
+      try {
+        const studentId = localStorage.getItem('studentId');
+        const result = await axios.post('http://localhost:8080/exam/submit', {studentId});
+        if (result) {
+          this.$router.push('/finished');
+          console.log('result ', result);
+        }
+      } catch (error) {
+        console.log('Error ', error.message);
+      }
     }
   },
 };
@@ -71,30 +83,44 @@ export default {
         <li v-for="(o, index) in question.options" :key="index">
           <div class="flex items-center mb-4 mt-4 ml-4">
             <input
+              v-if="question.selected == o._id"
+              :checked="true"
               :id="`option-${o._id}`"
               type="radio"
-              :checked="question.selected == o._id"
               :value="o._id"
               name="option"
+              :key="Math.random()"
+              class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+              @change="onChangeOption(o._id, 'attempted')"
+            />
+            <input
+              v-else
+              :id="`option-${o._id}`"
+              type="radio"
+              :value="o._id"
+              name="option"
+              :key="Math.random() + 1"
               class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
               @change="onChangeOption(o._id, 'attempted')"
             />
             <label
             :for="`option-${o._id}`"
-              class="ms-2 text-sm font-medium text-black"
+              class="ms-2 text-sm font-medium text-black cursor-pointer"
               >{{ o.value }}</label
             >
           </div>
         </li>
       </ul>
-      <div class="inline-flex">
-        <button class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-l" @click="$emit('previous')">
-          Prev
-        </button>
-        <button class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-r" @click="$emit('next')">
-          Next
-        </button>
-      </div>
+        <hr class="mb-6 mt-2">
+        <div class="flex">
+          <button v-if="!question.isFirst" class="bg-blue-300 hover:bg-blue-400 text-gray-800 font-bold py-2 px-4 rounded mr-6" @click="$emit('previous')">
+            Prev
+          </button>
+          <button v-if="!question.isLast" class="bg-blue-300 hover:bg-blue-400 text-gray-800 font-bold py-2 px-4 rounded ml-6" @click="$emit('next')">
+            Next
+          </button>
+          <button v-if="question.isLast" type="button" class="bg-green-300 hover:bg-green-400 text-gray-800 font-bold py-2 px-4 rounded ml-6" @click="submit()">Submit</button>
+        </div>
     </div>
   </div>
 </template>

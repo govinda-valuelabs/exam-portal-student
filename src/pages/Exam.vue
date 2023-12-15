@@ -31,6 +31,8 @@ export default {
       if (result.status == 200 && result.data) {
         this.exam = result.data;
         this.interval = setInterval(this.checkRemainingTime, 1000);
+      } else {
+        this.$router.push('/');
       }
     },
     checkRemainingTime() {
@@ -40,7 +42,7 @@ export default {
 
       if (milliseconds > this.exam.limit) {
         clearInterval(this.interval);
-        // this.$router.push('/finished')
+        this.$router.push('/finished')
       }
       const remainingSeconds = this.exam.limit - milliseconds;
       this.remainingTime = this.msToTime(remainingSeconds);
@@ -61,7 +63,7 @@ export default {
       if (result.status == 200 && result.data) {
         this.questions = isProxy(result.data) ? toRaw(result.data) : result.data;
         for (let q in this.questions) {
-          this.questions[q].cls = 'bg-blue-800';
+          this.questions[q].cls = 'bg-gray-500';
         }
       }
       this.randomKey = Math.random();

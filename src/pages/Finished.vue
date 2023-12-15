@@ -1,5 +1,4 @@
 <script>
-import ConfirmModal from "../components/ConfirmModal.vue";
 import AuthenticatedLayout from "../layouts/AuthenticatedLayout.vue";
 export default {
   name: 'Finished',
