@@ -42,10 +42,22 @@ export default {
 
       if (milliseconds > this.exam.limit) {
         clearInterval(this.interval);
-        this.$router.push('/finished')
+        this.submit();
       }
       const remainingSeconds = this.exam.limit - milliseconds;
       this.remainingTime = this.msToTime(remainingSeconds);
+    },
+
+    async submit() {
+      try {
+        const result = await axios.patch('http://localhost:8080/exam/' + this.exam._id, {endTime: Date.now('Asia/Kolkata')});
+        if (result) {
+          this.$router.push('/finished');
+          console.log('result ', result);
+        }
+      } catch (error) {
+        console.log('Error ', error.message);
+      }
     },
 
     msToTime(duration) {
@@ -102,7 +114,7 @@ export default {
       <div class="flex">
         <question-list v-if="exam" :questions="this.questions || []" :exam="exam" :key="randomKey"/>
         <div class="question">
-          <router-view @answer="checkAnswer" @opened="getExamStatus()" @previous="onClickPrevious()" @next="onClickNext()"></router-view>
+          <router-view @answer="checkAnswer" @opened="getExamStatus()" @previous="onClickPrevious()" @next="onClickNext()" @submit="submit()"></router-view>
         </div>
       </div>
     </div>

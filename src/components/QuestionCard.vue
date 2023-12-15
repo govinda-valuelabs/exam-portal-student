@@ -60,18 +60,6 @@ export default {
         console.log('Error ', message.error);
       }
     },
-    async submit() {
-      try {
-        const studentId = localStorage.getItem('studentId');
-        const result = await axios.post('http://localhost:8080/exam/submit', {studentId});
-        if (result) {
-          this.$router.push('/finished');
-          console.log('result ', result);
-        }
-      } catch (error) {
-        console.log('Error ', error.message);
-      }
-    }
   },
 };
 </script>
@@ -119,7 +107,7 @@ export default {
           <button v-if="!question.isLast" class="bg-blue-300 hover:bg-blue-400 text-gray-800 font-bold py-2 px-4 rounded ml-6" @click="$emit('next')">
             Next
           </button>
-          <button v-if="question.isLast" type="button" class="bg-green-300 hover:bg-green-400 text-gray-800 font-bold py-2 px-4 rounded ml-6" @click="submit()">Submit</button>
+          <button v-if="question.isLast" type="button" class="bg-green-300 hover:bg-green-400 text-gray-800 font-bold py-2 px-4 rounded ml-6" @click="$emit('submit')">Submit</button>
         </div>
     </div>
   </div>
