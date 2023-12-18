@@ -77,6 +77,7 @@ export default {
         for (let q in this.questions) {
           this.questions[q].cls = 'bg-gray-500';
         }
+        this.$router.push('/exam/' + this.questions[0]._id);
       }
       this.randomKey = Math.random();
     },

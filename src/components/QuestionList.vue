@@ -4,7 +4,7 @@ export default {
   name: "QuestionList",
   props: {
     questions: {
-      type: Array || Object,
+      type: [Array, Object],
       default: () => [],
     },
     exam: {
