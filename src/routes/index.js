@@ -13,8 +13,8 @@ const routes = createRouter({
         { path: '/login', name: 'login', component: Login },
         { path: '/register', name: 'register', component: Register },
         { 
-            path: '/exam',
-            name: 'exam',
+            path: '/survey',
+            name: 'survey',
             component: Exam,
             children: [
                 { path: ':questionId', name: 'examquestion', component: QuestionCard }

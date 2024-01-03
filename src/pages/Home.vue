@@ -21,7 +21,7 @@ export default {
       if (result.data != null && result.data.endTime) {
         this.$router.push("/finished");
       } else if (result.data != null) {
-        this.$router.push("/exam");
+        this.$router.push("/survey");
       }
     },
     onClickStart() {
@@ -33,7 +33,7 @@ export default {
         studentId,
       });
       if (result.status == 200 || result.status == 201) {
-        this.$router.push("/exam");
+        this.$router.push("/survey");
       }
     },
   },
@@ -47,11 +47,11 @@ export default {
       @confirm="confirmStart()"
       @cancel="showModal = false"
     >
-      You are going to start examination, the timer will be started and it will
+      You are going to start survey, the timer will be started and it will
       not be reverted.
     </ConfirmModal>
     <div class="w-[80%] mt-6 ml-6">
-      <h1 class="text-[32px]">Welcome to Exam Portal</h1>
+      <h1 class="text-[32px]">Welcome to Survey Portal</h1>
       <p class="text-green-500 text-[22px]">
         <b>Note: </b>All the questions are mandatory
       </p>

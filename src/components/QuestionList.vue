@@ -73,7 +73,7 @@ export default {
           <li v-for="(q, i) in questions" :key="i">
             <router-link
               :id="`route-${q._id}`"
-              :to="`/exam/${q._id}`"
+              :to="`/survey/${q._id}`"
               :class="`inline-block  m-2 w-16 h-16 rounded-md cursor-pointer items-center pt-3 ${q.cls} ${$route.params.questionId == q._id ? 'active-question' : ''}`"
               >{{ parseInt(i) + 1 }}</router-link
             >
