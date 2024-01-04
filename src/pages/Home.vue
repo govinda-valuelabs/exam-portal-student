@@ -6,8 +6,8 @@ export default {
   components: { AuthenticatedLayout, ConfirmModal },
   data: () => {
     return {
-      started: false,
-      showModal: false,
+      survey: null,
+      showModal: false
     };
   },
   mounted() {
@@ -18,23 +18,16 @@ export default {
       const studentId = localStorage.getItem("studentId");
       const result = await axios.get("http://localhost:8080/exam/status/" + studentId);
       
-      if (result.data != null && result.data.endTime) {
-        this.$router.push("/finished");
-      } else if (result.data != null) {
-        this.$router.push("/survey");
+      if (result.data != null) {
+        this.survey = result.data
       }
     },
     onClickStart() {
       this.showModal = true;
     },
+    
     async confirmStart() {
-      const studentId = localStorage.getItem("studentId");
-      const result = await axios.post("http://localhost:8080/exam/start", {
-        studentId,
-      });
-      if (result.status == 200 || result.status == 201) {
-        this.$router.push("/survey");
-      }
+      this.$router.push("/survey");
     },
   },
 };
@@ -52,6 +45,7 @@ export default {
     </ConfirmModal>
     <div class="w-[80%] mt-6 ml-6">
       <h1 class="text-[32px]">Welcome to Survey Portal</h1>
+      <p v-if="survey">You have a survey in {{ survey.category.name }}</p>
       <p class="text-green-500 text-[22px]">
         <b>Note: </b>All the questions are mandatory
       </p>

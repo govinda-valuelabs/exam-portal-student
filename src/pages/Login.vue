@@ -24,7 +24,6 @@ export default {
           })
           .then((result) => {
             if (result.status == 200) {
-              console.log("result.data ", result);
               localStorage.setItem("studentId", result.data.id);
               localStorage.setItem("studentToken", result.data.token);
               localStorage.setItem("name", result.data.name);

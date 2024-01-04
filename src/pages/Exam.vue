@@ -53,7 +53,6 @@ export default {
         const result = await axios.patch('http://localhost:8080/exam/' + this.exam._id, {endTime: Date.now('Asia/Kolkata')});
         if (result) {
           this.$router.push('/finished');
-          console.log('result ', result);
         }
       } catch (error) {
         console.log('Error ', error.message);
@@ -71,7 +70,8 @@ export default {
       return hours + ":" + minutes + ":" + seconds;
     },
     async getQuestions() {
-      const result = await axios.get("http://localhost:8080/exam/question");
+      const studentId = localStorage.getItem("studentId");
+      const result = await axios.get("http://localhost:8080/exam/questions/" + studentId);
       if (result.status == 200 && result.data) {
         this.questions = isProxy(result.data) ? toRaw(result.data) : result.data;
         for (let q in this.questions) {
@@ -109,9 +109,9 @@ export default {
 <template>
   <AuthenticatedLayout>
     <div class="mt-6 ml-6">
-      <p class="text-green-500 text-[22px]">
+      <!-- <p class="text-green-500 text-[22px]">
         <b>Remaining Time: {{ remainingTime }}</b>
-      </p>
+      </p> -->
       <div class="flex">
         <question-list v-if="exam" :questions="this.questions || []" :exam="exam" :key="randomKey"/>
         <div class="question">
