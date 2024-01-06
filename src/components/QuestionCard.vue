@@ -25,6 +25,19 @@ export default {
     })
     this.getFeedback();
   },
+  computed: {
+    options() {
+      let options = [];
+      
+      if (this.answer) {
+        this.answer.option.forEach((o) => {
+          options.push(o._id)
+        })
+      }
+
+      return options;
+    }
+  },
   watch: {
     "$route.params.questionId": {
       handler: function (value) {
@@ -74,8 +87,11 @@ export default {
     async onChangeOption(optionId, status) {
       const { questionId } = this.$route.params
       const studentId = localStorage.getItem('studentId');
+      const type = this.question.type;
+      const payload = { questionId, status, optionId, type };
+      console.log('payload ', payload);
       try {
-        const result = await axios.post('http://localhost:8080/attempt/' + studentId, { questionId, status, optionId });
+        const result = await axios.post('http://localhost:8080/attempt/' + studentId, payload);
         if (result) {
           this.$emit('answer', { questionId, status, optionId });
         }
@@ -83,43 +99,19 @@ export default {
         console.log('Error ', message.error);
       }
     },
-    onKeyUp(event) {
-      clearTimeout(this.timer);
-      self = this
-      this.timer = setTimeout(function() {
-        self.changeInputText();
-      }, 1000)
-    },
     async changeInputText() {
-      const answer = this.text;
-      const status = 'attempted';
-      const studentId = localStorage.getItem('studentId');
-      const question = this.$route.params.questionId;
-      const type = 'text';
-      if (this.answer) {
-        await axios.patch('http://localhost:8080/answer/' + this.answer._id, { answer, status, studentId, question, type });
-      } else {
-        await axios.post('http://localhost:8080/answer', { answer, status, studentId, question, type })
-      }
-    },
-    onFileChange(evt) {
-      const attachment = evt.target.files[0];
-      const fd = new FormData();
-      const studentId = localStorage.getItem('studentId');
-      const question = this.$route.params.questionId;
-        console.log('attachment ', attachment);
-      fd.append('attachment', attachment);
-      fd.append('studentId', studentId);
-      fd.append('question', question);
-      fd.append('type', 'file');
-      fd.append('status', 'attempted');
-      console.log('fd ', fd.values());
-
-      axios.post('http://localhost:8080/answer/upload', fd , {
-        headers: {
-          'Content-Type': 'multipart/form-data'
+      if (this.text.trim() != '') {
+        const answer = this.text.trim();
+        const status = 'attempted';
+        const studentId = localStorage.getItem('studentId');
+        const question = this.$route.params.questionId;
+        const type = 'text';
+        if (this.answer) {
+          await axios.patch('http://localhost:8080/answer/' + this.answer._id, { answer, status, studentId, question, type });
+        } else {
+          await axios.post('http://localhost:8080/answer', { answer, status, studentId, question, type })
         }
-      });
+      }
     },
     async getFeedback() {
       const question = this.$route.params.questionId;
@@ -152,25 +144,15 @@ export default {
   <div v-if="question" class="container ml-6">
     <p class="font-semibold text-[22px]"> <span>{{ questionIndex }}</span> Question: {{ question.title }}</p>
 
-    <div v-if="['text', 'file',].includes(question.type)" class="options">
+    <div v-if="question.type == 'text'" class="options">
       <div class="grid gap-6 mb-6 md:grid-cols-2">
         <div class="mt-2">
           <input
-            v-if="question.type == 'file'"
             :id="`option-${question.type}`"
-            type="file"
-            class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
-            placeholder="Choose File"
-            @change="onFileChange"
-          />
-          <input
-            v-else
-            :id="`option-${question.type}`"
-            v-model="text"
             type="text"
             class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
             placeholder="Write your answer"
-            @keyup="onKeyUp"
+            @blur="changeInputText()"
             :value="answer ? answer.answer : ''"
           />
         </div>
@@ -180,16 +162,21 @@ export default {
       <ul>
         <li v-for="(o, index) in question.options" :key="index">
           <div class="flex items-center mb-4 mt-4 ml-4">
-            <input v-if="question.selected == o._id" :checked="true" :id="`option-${o._id}`"
-              :type="question.type == 'checkbox' ? 'checkbox' : 'radio'" :value="o._id" name="option" :key="Math.random()"
+            <input
+              :id="`option-${o._id}`"
+              :type="question.type == 'checkbox' ? 'checkbox' : 'radio'"
+              :value="o._id"
+              :checked="options.includes(o._id)"
+              name="option" :key="Math.random() + 1"
               class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-              @change="onChangeOption(o._id, 'attempted')" />
-            <input v-else :id="`option-${o._id}`" :type="question.type == 'checkbox' ? 'checkbox' : 'radio'"
-              :value="o._id" name="option" :key="Math.random() + 1"
-              class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-              @change="onChangeOption(o._id, 'attempted')" />
-            <label :for="`option-${o._id}`" class="ms-2 text-sm font-medium text-black cursor-pointer">{{ o.value
-            }}</label>
+              @change="onChangeOption(o._id, 'attempted')"
+            />
+            <label
+              :for="`option-${o._id}`"
+              class="ms-2 text-sm font-medium text-black cursor-pointer"
+            >
+              {{ o.value }}
+            </label>
           </div>
         </li>
       </ul>
