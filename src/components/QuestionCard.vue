@@ -28,7 +28,7 @@ export default {
   computed: {
     options() {
       let options = [];
-      
+
       if (this.answer) {
         this.answer.option.forEach((o) => {
           options.push(o._id)
@@ -83,7 +83,7 @@ export default {
         console.log("Error ", error.message);
       }
     },
-    
+
     async onChangeOption(optionId, status) {
       const { questionId } = this.$route.params
       const studentId = localStorage.getItem('studentId');
@@ -125,6 +125,22 @@ export default {
         }
       }
     },
+    onFileChange(evt) {
+      const attachment = evt.target.files[0];
+      const fd = new FormData();
+      const studentId = localStorage.getItem('studentId');
+      const question = this.$route.params.questionId;
+      fd.append('attachment', attachment);
+      fd.append('studentId', studentId);
+      fd.append('question', question);
+      fd.append('status', 'attempted');
+
+      axios.post('http://localhost:8080/attachment/upload', fd, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+    },
     async submitFeedback() {
       const question = this.$route.params.questionId;
       const studentId = localStorage.getItem('studentId');
@@ -147,14 +163,9 @@ export default {
     <div v-if="question.type == 'text'" class="options">
       <div class="grid gap-6 mb-6 md:grid-cols-2">
         <div class="mt-2">
-          <input
-            :id="`option-${question.type}`"
-            type="text"
+          <input :id="`option-${question.type}`" type="text"
             class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-            placeholder="Write your answer"
-            @blur="changeInputText()"
-            :value="answer ? answer.answer : ''"
-          />
+            placeholder="Write your answer" @blur="changeInputText()" :value="answer ? answer.answer : ''" />
         </div>
       </div>
     </div>
@@ -162,51 +173,46 @@ export default {
       <ul>
         <li v-for="(o, index) in question.options" :key="index">
           <div class="flex items-center mb-4 mt-4 ml-4">
-            <input
-              :id="`option-${o._id}`"
-              :type="question.type == 'checkbox' ? 'checkbox' : 'radio'"
-              :value="o._id"
-              :checked="options.includes(o._id)"
-              name="option" :key="Math.random() + 1"
+            <input :id="`option-${o._id}`" :type="question.type == 'checkbox' ? 'checkbox' : 'radio'" :value="o._id"
+              :checked="options.includes(o._id)" name="option" :key="Math.random() + 1"
               class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-              @change="onChangeOption(o._id, 'attempted')"
-            />
-            <label
-              :for="`option-${o._id}`"
-              class="ms-2 text-sm font-medium text-black cursor-pointer"
-            >
+              @change="onChangeOption(o._id, 'attempted')" />
+            <label :for="`option-${o._id}`" class="ms-2 text-sm font-medium text-black cursor-pointer">
               {{ o.value }}
             </label>
           </div>
         </li>
       </ul>
     </div>
+    <div v-if="question.attachment" class="attachment">
+      <div class="mt-2">
+        <input :id="`file-option-${question.type}`" type="file"
+          class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
+          placeholder="Choose File" @change="onFileChange" />
+      </div>
+    </div>
     <hr class="mb-6 mt-2">
-      <div class="flex">
-        <button v-if="!question.isFirst"
-          class="bg-blue-300 hover:bg-blue-400 text-gray-800 font-bold py-2 px-4 rounded mr-6" @click="$emit('previous')">
-          Prev
-        </button>
-        <button v-if="!question.isLast"
-          class="bg-blue-300 hover:bg-blue-400 text-gray-800 font-bold py-2 px-4 rounded ml-6" @click="$emit('next')">
-          Next
-        </button>
-        <button v-if="question.isLast" type="button"
-          class="bg-green-300 hover:bg-green-400 text-gray-800 font-bold py-2 px-4 rounded ml-6"
-          @click="$emit('submit')">Submit</button>
-      </div>
-      <hr class="mb-6 mt-2">
-      <div class="flex">
-        <input
-            :id="`feedback-${question._id}`"
-            v-model="feedback.comment"
-            type="text"
-            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-            placeholder="Write remark for this question"
-          />
-          <button v-if="feedback.comment" type="button"
-          class="bg-green-300 hover:bg-green-400 text-gray-800 font-bold py-1 px-2 rounded"
-          @click="submitFeedback()">Submit Feedback</button>
-      </div>
+    <div class="flex">
+      <button v-if="!question.isFirst"
+        class="bg-blue-300 hover:bg-blue-400 text-gray-800 font-bold py-2 px-4 rounded mr-6" @click="$emit('previous')">
+        Prev
+      </button>
+      <button v-if="!question.isLast" class="bg-blue-300 hover:bg-blue-400 text-gray-800 font-bold py-2 px-4 rounded ml-6"
+        @click="$emit('next')">
+        Next
+      </button>
+      <button v-if="question.isLast" type="button"
+        class="bg-green-300 hover:bg-green-400 text-gray-800 font-bold py-2 px-4 rounded ml-6"
+        @click="$emit('submit')">Submit</button>
+    </div>
+    <hr class="mb-6 mt-2">
+    <div class="flex">
+      <input :id="`feedback-${question._id}`" v-model="feedback.comment" type="text"
+        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+        placeholder="Write remark for this question" />
+      <button v-if="feedback.comment" type="button"
+        class="bg-green-300 hover:bg-green-400 text-gray-800 font-bold py-1 px-2 rounded" @click="submitFeedback()">Submit
+        Feedback</button>
+    </div>
   </div>
 </template>
