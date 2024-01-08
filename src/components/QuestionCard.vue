@@ -10,11 +10,14 @@ export default {
       answer: null,
       timer: null,
       text: null,
-      file: null,
+      file: {
+        url: null
+      },
       waitTime: 1000,
       feedback: {
         comment: null
-      }
+      },
+      preview: false
     };
   },
   mounted() {
@@ -68,7 +71,10 @@ export default {
             this.getQuestionIndex();
           })
         }
-        this.$emit('opened', { questionId: id })
+        this.$emit('opened', { questionId: id });
+        if (this.question.attachment) {
+          this.getFile();
+        }
       } catch (error) {
         console.log("Error ", error.message);
       }
@@ -89,7 +95,6 @@ export default {
       const studentId = localStorage.getItem('studentId');
       const type = this.question.type;
       const payload = { questionId, status, optionId, type };
-      console.log('payload ', payload);
       try {
         const result = await axios.post('http://localhost:8080/attempt/' + studentId, payload);
         if (result) {
@@ -99,9 +104,10 @@ export default {
         console.log('Error ', message.error);
       }
     },
-    async changeInputText() {
-      if (this.text.trim() != '') {
-        const answer = this.text.trim();
+    async changeInputText(evt) {
+      const text = evt.target.value
+      if (text.trim() != '') {
+        const answer = text.trim();
         const status = 'attempted';
         const studentId = localStorage.getItem('studentId');
         const question = this.$route.params.questionId;
@@ -133,13 +139,24 @@ export default {
       fd.append('attachment', attachment);
       fd.append('studentId', studentId);
       fd.append('question', question);
-      fd.append('status', 'attempted');
 
-      const result = await axios.post('http://localhost:8080/attachment/upload', fd, {
+      const result = await axios.post('http://localhost:8080/file-upload', fd, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
       });
+
+      if (result.status == 201) {
+        this.file.url = 'http://localhost:8080/' + result._doc.path;
+      }
+    },
+    async getFile() {
+      const studentId = localStorage.getItem('studentId');
+      const questionId = this.$route.params.questionId;
+      const result = await axios.get('http://localhost:8080/get-attachment?studentId=' + studentId + '&questionId=' + questionId);
+      if (result.status == 200 && result.data) {
+        this.file.url = 'http://localhost:8080/' + result.data.path;
+      }
     },
     async submitFeedback() {
       const question = this.$route.params.questionId;
@@ -163,9 +180,11 @@ export default {
     <div v-if="question.type == 'text'" class="options">
       <div class="grid gap-6 mb-6 md:grid-cols-2">
         <div class="mt-2">
-          <input :id="`option-${question.type}`" type="text"
+          <input
+            :id="`option-${question.type}`"
+            type="text"
             class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-            placeholder="Write your answer" @blur="changeInputText()" :value="answer ? answer.answer : ''" />
+            placeholder="Write your answer" @blur="changeInputText" :value="answer ? answer.answer : ''" />
         </div>
       </div>
     </div>
@@ -189,6 +208,18 @@ export default {
         <input :id="`file-option-${question.type}`" type="file"
           class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
           placeholder="Choose File" @change="onFileChange" />
+      </div>
+      <div v-if="file.url" class="mt-4">
+        <img
+          :src="file.url"
+          class="attachment-file"
+          alt="attachment"
+          @mouseenter="preview = true"
+          @mouseleave="preview = false"
+        />
+        <div v-if="preview">
+          <img :src="file.url" alt="attachment-preview" class="attachment-preview" />
+        </div>
       </div>
     </div>
     <hr class="mb-6 mt-2">

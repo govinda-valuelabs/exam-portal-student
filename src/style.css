@@ -1,18 +1,35 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
 .w-100-vh {
   width: 100vh;
 }
 
-.login, .register {
+.login,
+.register {
   margin: auto;
   display: block;
   width: 400px;
 }
+
 .side-h-screen {
   height: calc(100vh - 140px);
 }
+
 .active-question {
   box-shadow: 2px 2px 2px 2px greenyellow;
+}
+
+.attachment-file {
+  height: 80px;
+}
+
+.attachment-preview {
+  position: absolute;
+  right: 10%;
+  height: 320px;
+  top: 10%;
+  border: 2px solid blue;
+  border-radius: 5px;
 }
