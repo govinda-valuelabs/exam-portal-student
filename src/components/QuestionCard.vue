@@ -61,7 +61,7 @@ export default {
       const id = this.$route.params.questionId;
       const studentId = localStorage.getItem('studentId');
       try {
-        const result = await axios.get("http://localhost:8080/question/" + id);
+        const result = await axios.get("http://localhost:8080/question/" + id + '?studentId=' + studentId);
         if (result.status == 200 && result.data) {
           this.question = result.data;
           this.$nextTick(function () {
@@ -125,7 +125,7 @@ export default {
         }
       }
     },
-    onFileChange(evt) {
+    async onFileChange(evt) {
       const attachment = evt.target.files[0];
       const fd = new FormData();
       const studentId = localStorage.getItem('studentId');
@@ -135,7 +135,7 @@ export default {
       fd.append('question', question);
       fd.append('status', 'attempted');
 
-      axios.post('http://localhost:8080/attachment/upload', fd, {
+      const result = await axios.post('http://localhost:8080/attachment/upload', fd, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
@@ -206,12 +206,12 @@ export default {
         @click="$emit('submit')">Submit</button>
     </div>
     <hr class="mb-6 mt-2">
-    <div class="flex">
+    <div class="feedback">
       <input :id="`feedback-${question._id}`" v-model="feedback.comment" type="text"
-        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
         placeholder="Write remark for this question" />
       <button v-if="feedback.comment" type="button"
-        class="bg-green-300 hover:bg-green-400 text-gray-800 font-bold py-1 px-2 rounded" @click="submitFeedback()">Submit
+        class="mt-2 bg-green-300 hover:bg-green-400 text-gray-800 font-bold py-1 px-2" @click="submitFeedback()">Submit
         Feedback</button>
     </div>
   </div>
