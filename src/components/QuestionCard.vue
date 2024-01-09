@@ -1,7 +1,9 @@
 <script>
 import axios from "axios";
+import Toaster from '../components/Toaster.vue'
 export default {
   name: "QuestionCard",
+  components: { Toaster },
   data: () => {
     return {
       loading: false,
@@ -17,7 +19,13 @@ export default {
       feedback: {
         comment: null
       },
-      preview: false
+      toast: {
+        show: true,
+        type: 'success',
+        message: 'File was removed successfully!'
+      },
+      preview: false,
+      remove: false
     };
   },
   mounted() {
@@ -49,6 +57,15 @@ export default {
         this.getFeedback();
       },
     },
+    'toast.show': {
+      handler: function(value) {
+        if (value) {
+          setTimeout(function() {
+            this.toast.show = false;
+          }, 3000);
+        }
+      } 
+    }
   },
   methods: {
     getQuestionIndex() {
@@ -132,6 +149,7 @@ export default {
       }
     },
     async onFileChange(evt) {
+      this.remove = true;
       const attachment = evt.target.files[0];
       const fd = new FormData();
       const studentId = localStorage.getItem('studentId');
@@ -147,7 +165,22 @@ export default {
       });
 
       if (result.status == 201) {
+        console.log('result doc ', result);
         this.file.url = 'http://localhost:8080/' + result._doc.path;
+      }
+    },
+    async removeFile() {
+      const studentId = localStorage.getItem('studentId');
+      const question = this.$route.params.questionId;
+      try {
+        const result = await axios.post('http://localhost:8080/delete-attachment', {studentId, question});
+        if (result.status) {
+          this.toast.show = true;
+          this.toast.type = 'success';
+          this.toast.message = 'File was removed successfully!';
+        }
+      } catch (error) {
+        
       }
     },
     async getFile() {
@@ -175,6 +208,7 @@ export default {
 </script>
 <template>
   <div v-if="question" class="container ml-6">
+    <Toaster v-if="toast.show" :type="toast.type" :message="toast.message" @close="toast.show = false"/>
     <p class="font-semibold text-[22px]"> <span>{{ questionIndex }}</span> Question: {{ question.title }}</p>
 
     <div v-if="question.type == 'text'" class="options">
@@ -204,18 +238,26 @@ export default {
       </ul>
     </div>
     <div v-if="question.attachment" class="attachment">
-      <div class="mt-2">
+      <div class="mt-2 flex">
         <input :id="`file-option-${question.type}`" type="file"
-          class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
+          class="text-sm"
           placeholder="Choose File" @change="onFileChange" />
+          <button
+            v-if="remove"
+            type="button"
+            class="text-white bg-gradient-to-r from-red-400 via-red-500 to-red-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 font-medium text-sm px-2 py-1 text-center me-2 mb-2"
+            @click="removeFile()"
+          >&times;</button>
       </div>
       <div v-if="file.url" class="mt-4">
         <img
           :src="file.url"
           class="attachment-file"
           alt="attachment"
+          title="Click to remove file"
           @mouseenter="preview = true"
           @mouseleave="preview = false"
+          @click="removeFile()"
         />
         <div v-if="preview">
           <img :src="file.url" alt="attachment-preview" class="attachment-preview" />
@@ -243,7 +285,7 @@ export default {
         placeholder="Write remark for this question" />
       <button v-if="feedback.comment" type="button"
         class="mt-2 bg-green-300 hover:bg-green-400 text-gray-800 font-bold py-1 px-2" @click="submitFeedback()">Submit
-        Feedback</button>
+        Remark</button>
     </div>
   </div>
 </template>

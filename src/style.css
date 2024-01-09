@@ -23,6 +23,7 @@
 
 .attachment-file {
   height: 80px;
+  cursor: pointer;
 }
 
 .attachment-preview {
@@ -32,4 +33,15 @@
   top: 10%;
   border: 2px solid blue;
   border-radius: 5px;
+}
+
+.ck-editor {
+  width: 620px !important;
+}
+.ck-content {
+  height: 300px !important;
+}
+.toaster-container {
+  position: absolute;
+  right: 8px;
 }

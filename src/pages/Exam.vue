@@ -51,7 +51,7 @@ export default {
     async submit() {
       try {
         const result = await axios.patch('http://localhost:8080/exam/' + this.exam._id, {endTime: Date.now('Asia/Kolkata')});
-        if (result) {
+        if (result.status == 201) {
           this.$router.push('/finished');
         }
       } catch (error) {
