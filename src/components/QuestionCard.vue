@@ -20,7 +20,7 @@ export default {
         comment: null
       },
       toast: {
-        show: true,
+        show: false,
         type: 'success',
         message: 'File was removed successfully!'
       },
